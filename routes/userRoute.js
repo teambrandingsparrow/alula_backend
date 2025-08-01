@@ -10,8 +10,8 @@ const router = express.Router();
 
 router.post('/register',registerUser);
 router.post('/login', login);
-router.get("/verify-token",authMiddleware(['admin','user']), verifyToken);
-router.get("/users",authMiddleware(['admin']), getUsers);
+router.get("/verify-token", verifyToken);
+router.get("/users", getUsers);
 router.get("/user/:id",authMiddleware(['admin']), getUserById);
 router.patch('/updateuser/:id',authMiddleware(['admin']),updateUser);
 router.delete('/delete/:id', authMiddleware(['admin']), deleteUser);
