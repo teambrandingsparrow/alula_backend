@@ -11,15 +11,14 @@ const productRoutes = require('./routes/productRoute');
 const dealRoutes = require('./routes/dealRoute');
 const comboRoutes = require('./routes/comboRoute');
 const categoryRoutes = require('./routes/categoryRoute');
-// const shopRoutes = require('./routes/shopRoutes');
-// const screenRoutes = require('./routes/screenRoutes');
 // const testRoutes = require('./routes/test');
 const connectDB = require('./config/db');
 
 const allowedOrigins = [
-  'https://shoppify-client.vercel.app',
-  'https://shoppify-admin.vercel.app',
-  'http://localhost:3000'    
+  'https://alula-client.vercel.app',
+  'https://alula-admin.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:3001'
 ];
 
 // Prevent memory leak warning
@@ -35,18 +34,18 @@ connectDB();
 const app = express();
 
 // Middleware
-// app.use(cors({
-//   origin: function (origin, callback) {
-//     if (!origin || allowedOrigins.includes(origin)) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error('Not allowed by CORS'));
-//     }
-//   },
-//   credentials: true 
-// }));
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true 
+}));
 
-app.use(cors());
+// app.use(cors());
 
 app.use(express.json());
 // app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -57,21 +56,12 @@ app.use('/api/products', productRoutes);
 app.use('/api/deals', dealRoutes);
 app.use('/api/combos', comboRoutes);
 app.use('/api/prodcat', categoryRoutes);
-// app.use('/api/shops', shopRoutes);
-// app.use('/api/screens', screenRoutes);
-// app.use('/api/test', testRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
-// app.use((err, req, res, next) => {
-//   console.error("Unhandled Error:", err.message);
-//   res.status(500).json({ message: "Internal Server Error" });
-// });
-
 
 app.get("/", (req, res) => {
   res.send("API is running...");

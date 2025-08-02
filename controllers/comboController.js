@@ -3,8 +3,8 @@ import ComboProduct from '../models/ComboProduct.js';
 import Product from '../models/Product.js';
 
 
-// Create a new deal
-export const addDeal = async (req, res) => {
+// Create a new combodeal
+export const addComboDeal = async (req, res) => {
 try {
 const {
 comboProductIds,
@@ -60,8 +60,8 @@ res.status(500).json({ message: err.message || "Failed to create combo deal." })
 };
 
 
-// Get all deals
-export const getDeals = async (req, res) => {
+// Get all combodeals
+export const getComboDeals = async (req, res) => {
   try {
   const comboDeals = await ComboProduct.find().populate("comboProducts");
   res.status(201).json({ message: 'Deal Fetched successfully',comboDeals:comboDeals });
@@ -70,72 +70,90 @@ export const getDeals = async (req, res) => {
   }
 };
 
-// Get deal by ID
-export const getDealById = async (req, res) => {
+// Get combodeal by ID
+export const getComboDealById = async (req, res) => {
   try {
-  const deal = await DealProduct.findById(req.params.id).populate("product");
-  if (!deal) return res.status(404).json({ message: "Deal not found" });
-  res.status(201).json({ message: 'Deal Fetched successfully',deal:deal });
+  const comboDeal = await ComboProduct.findById(req.params.id).populate("comboProducts");
+  if (!comboDeal) return res.status(404).json({ message: "Combo Deal not found" });
+  res.status(201).json({ message: 'Combo Deal Fetched successfully',comboDeal:comboDeal });
   } catch (err) {
   res.status(500).json({ message: err.message });
   }
 };
 
-// Update deal
-export const updateDeal = async (req, res) => {
-try {
-const dealId = req.params.id;
+// Update combodeal
+export const updateComboDeal = async (req, res) => {
+  try {
+    const comboId = req.params.id;
     const updates = req.body;
-    console.log("updates ",updates)
 
-const deal = await DealProduct.findById(dealId);
-if (!deal) return res.status(404).json({ message: "Deal not found" });
-
-    deal.dealOfferprice = updates.dealOfferprice || deal.dealOfferprice;
-    deal.dealPercentage = updates.dealPercentage || deal.dealPercentage;
-    deal.startDate = updates.startDate || deal.startDate;
-    deal.endDate = updates.endDate || deal.endDate;
-    if(deal.endDate){
-      deal.expiresAt = updates.endDate || deal.expiresAt;
+    const comboDeal = await ComboProduct.findById(comboId);
+    if (!comboDeal) {
+      return res.status(404).json({ message: "Combo Deal not found" });
     }
-    
 
-// Handle media updates
- if (updates.existingMedia) {
+    // Update fields
+    if (updates.comboProductIds) {
+  try {
+    const parsedIds = typeof updates.comboProductIds === 'string'
+      ? JSON.parse(updates.comboProductIds)
+      : updates.comboProductIds;
+
+    comboDeal.comboProducts = parsedIds;
+  } catch (err) {
+    return res.status(400).json({ message: "Invalid comboProductIds format" });
+  }
+}
+
+    comboDeal.price = updates.price || comboDeal.price;
+    comboDeal.dealOfferprice = updates.dealOfferprice || comboDeal.dealOfferprice;
+    comboDeal.dealPercentage = updates.dealPercentage || comboDeal.dealPercentage;
+    comboDeal.desc = updates.desc || comboDeal.desc;
+    comboDeal.startDate = updates.startDate || comboDeal.startDate;
+    comboDeal.endDate = updates.endDate || comboDeal.endDate;
+
+    if (updates.endDate) {
+      comboDeal.expiresAt = updates.endDate;
+    }
+
+    // Media - handle existing
+    if (updates.existingMedia) {
       try {
         const parsed = typeof updates.existingMedia === "string"
           ? JSON.parse(updates.existingMedia)
           : updates.existingMedia;
-        deal.media = parsed;
+        comboDeal.media = parsed;
       } catch (err) {
         return res.status(400).json({ message: "Invalid existingMedia format" });
       }
     }
 
-    // Add new uploaded media (Cloudinary URLs)
+    // New uploaded media
     if (req.files && req.files.length > 0) {
-      const newMedia = req.files.map((file) => ({
+      const newMedia = req.files.map(file => ({
         url: file.path,
         type: file.mimetype.startsWith("video") ? "video" : "image",
         public_id: file.filename,
       }));
-      deal.media.push(...newMedia);
+      comboDeal.media.push(...newMedia);
     }
 
-await deal.save();
-res.json({ message: "Deal updated successfully", deal });
-} catch (err) {
-console.error("Update deal error:", err);
-res.status(500).json({ message: err.message || "Server error" });
-}
+    await comboDeal.save();
+    res.json({ message: "Combo Deal updated successfully", comboDeal: comboDeal });
+
+  } catch (err) {
+    console.error("Update combo deal error:", err);
+    res.status(500).json({ message: err.message || "Server error" });
+  }
 };
 
-// Delete deal
+
+// Delete combodeal
 export const deleteDeal = async (req, res) => {
   try {
-    await DealProduct.findByIdAndDelete(req.params.id);
-    res.status(200).json({ message: 'Deal deleted' });
+    await ComboProduct.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: 'Combo Deal deleted' });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting deal', error });
+    res.status(500).json({ message: 'Error deleting combo deal', error });
   }
 };
